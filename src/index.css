@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modern Blog Design System - All colors, gradients, fonts, animations */
+
+@layer base {
+  :root {
+    /* Modern Blog Color Palette - Darker theme */
+    --background: 220 23% 95%;
+    --foreground: 222 84% 8%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 222 84% 8%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 222 84% 8%;
+
+    /* Primary: Deep Blue-Purple */
+    --primary: 236 72% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-dark: 236 48% 55%;
+
+    /* Secondary: Rich Purple */
+    --secondary: 270 50% 92%;
+    --secondary-foreground: 88 28% 25%;
+
+    /* Accent: Vibrant Gradient Colors */
+    --accent: 315 85% 75%;
+    --accent-foreground: 222 84% 8%;
+    --accent-secondary: 268 75% 68%;
+
+    --muted: 210 30% 88%;
+    --muted-foreground: 215 16% 35%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 25% 85%;
+    --input: 214 25% 88%;
+    --ring: 236 72% 65%;
+
+    /* Design System Tokens */
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+
+    /* Typography */
+    --font-heading: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+
+    /* Gradients - Updated for both light and dark modes */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    --gradient-hero: linear-gradient(135deg, hsl(236 72% 65%), hsl(315 85% 75%), hsl(268 75% 68%));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card) / 0.8), hsl(var(--muted) / 0.4));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(222 84% 13% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(222 84% 13% / 0.1), 0 2px 4px -1px hsl(222 84% 13% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(222 84% 13% / 0.1), 0 4px 6px -2px hsl(222 84% 13% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(222 84% 13% / 0.1), 0 10px 10px -5px hsl(222 84% 13% / 0.04);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Enhanced Dark Mode Colors */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 95%;
+
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 95%;
+
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 95%;
+
+    /* Primary: Bright Purple for dark mode */
+    --primary: 270 95% 75%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 222 47% 12%;
+    --secondary-foreground: 210 40% 95%;
+
+    --muted: 222 47% 12%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 315 100% 75%;
+    --accent-foreground: 222 47% 6%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 40% 95%;
+
+    --border: 222 47% 18%;
+    --input: 222 47% 15%;
+    --ring: 270 95% 75%;
+
+    --sidebar-background: 222 47% 4%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 270 95% 75%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 47% 12%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 222 47% 18%;
+    --sidebar-ring: 270 95% 75%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Blog Hero Section */
+  .blog-hero {
+    background: var(--gradient-hero);
+    @apply relative overflow-hidden;
+  }
+
+  .blog-hero::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-white/20 to-transparent;
+  }
+
+  /* Card Animations */
+  .blog-card {
+    @apply bg-card rounded-xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+    box-shadow: var(--shadow-md);
+    background: var(--gradient-card);
+    backdrop-filter: blur(10px);
+  }
+
+  .blog-card:hover {
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Form Enhancements */
+  .form-field {
+    @apply relative overflow-hidden rounded-lg border border-input bg-card/50 backdrop-blur-sm;
+    transition: var(--transition-smooth);
+  }
+
+  .form-field:focus-within {
+    @apply ring-2 ring-primary border-primary/50;
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Button Variants */
+  .btn-hero {
+    background: var(--gradient-primary);
+    @apply text-primary-foreground border-0 hover:shadow-lg;
+    transition: var(--transition-spring);
+  }
+
+  .btn-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Animations */
+  .fade-in {
+    animation: fade-in 0.7s ease-out;
+  }
+
+  .slide-up {
+    animation: slide-in-from-bottom-6 0.5s ease-out;
+  }
+
+  .stagger-1 { animation-delay: 100ms; }
+  .stagger-2 { animation-delay: 200ms; }
+  .stagger-3 { animation-delay: 300ms; }
+}

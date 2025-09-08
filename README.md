@@ -4,7 +4,7 @@ A modern blog management frontend built with Vite + React + TypeScript + shadcn/
 
 ## Quick start (local)
 
-Requirements: Node 18+, npm (or bun/pnpm), a running backend API (Spring Boot) on `http://localhost:8080`.
+Requirements: Node 18+, npm (or bun/pnpm), a running backend API (Spring Boot) on `https://blog-management-system-qk02.onrender.com`.
 
 ```bash
 npm install
@@ -18,10 +18,10 @@ Open `http://localhost:5173` (or the printed port).
 Create a `.env` file in the project root if you want to change the backend URL:
 
 ```
-VITE_API_URL=http://localhost:8080
+VITE_API_URL=https://blog-management-system-qk02.onrender.com
 ```
 
-The code defaults to `http://localhost:8080` when `VITE_API_URL` is not set.
+The code defaults to `https://blog-management-system-qk02.onrender.com` when `VITE_API_URL` is not set.
 
 ## Features
 

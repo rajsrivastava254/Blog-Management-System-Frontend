@@ -49,7 +49,7 @@ const Index = () => {
     if (!isLoggedIn) return;
     const fetchPosts = async () => {
       try {
-        const res = await fetch("http://localhost:8080/posts");
+        const res = await fetch("https://blog-management-system-qk02.onrender.com/posts");
         if (!res.ok) throw new Error("Failed to fetch posts");
         const data = await res.json();
         const mapped: Post[] = (Array.isArray(data) ? data : []).map((p: any) => ({
@@ -106,7 +106,7 @@ const Index = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:8080/users", {
+      const res = await fetch("https://blog-management-system-qk02.onrender.com/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
@@ -154,7 +154,7 @@ const Index = () => {
 
   const handleAddPost = async (newPost: { title: string; content: string; tags: string[] }) => {
     try {
-      const res = await fetch("http://localhost:8080/posts", {
+      const res = await fetch("https://blog-management-system-qk02.onrender.com/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -197,7 +197,7 @@ const Index = () => {
 
   const handleCheckUsers = async () => {
     try {
-      const res = await fetch("http://localhost:8080/users");
+      const res = await fetch("https://blog-management-system-qk02.onrender.com/users");
       if (!res.ok) throw new Error("Failed to fetch users");
       const users = await res.json();
       const count = Array.isArray(users) ? users.length : 0;

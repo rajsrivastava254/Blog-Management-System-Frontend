@@ -118,7 +118,7 @@ const Index = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/auth`, {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),

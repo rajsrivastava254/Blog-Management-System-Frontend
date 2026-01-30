@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE, authHeader } from "@/lib/api";
 import BlogPost from "@/components/BlogPost";
 import PostForm from "@/components/PostForm";
 import LoginForm from "@/components/LoginForm";
@@ -30,6 +31,8 @@ const Index = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
+  const [posts, setPosts] = useState<Post[]>([]);
+
   useEffect(() => {
     const storedIsLoggedIn = localStorage.getItem("auth:isLoggedIn");
     if (storedIsLoggedIn === "true") {
@@ -45,11 +48,17 @@ const Index = () => {
     }
   }, []);
 
+  // Fetch posts only when logged in, using JWT + correct base URL
   useEffect(() => {
     if (!isLoggedIn) return;
     const fetchPosts = async () => {
       try {
-        const res = await fetch("https://blog-management-system-qk02.onrender.com/posts");
+        const res = await fetch(`${API_BASE}/posts`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(),
+          },
+        });
         if (!res.ok) throw new Error("Failed to fetch posts");
         const data = await res.json();
         const mapped: Post[] = (Array.isArray(data) ? data : []).map((p: any) => ({
@@ -57,7 +66,7 @@ const Index = () => {
           title: String(p.title ?? "Untitled"),
           content: String(p.content ?? ""),
           tags: Array.isArray(p.tags) ? p.tags : [],
-          author: p.user?.name || p.author || "Blog Author",
+          author: p.user?.email || p.author || "Blog Author",
           date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
           readTime: "3 min read",
         }));
@@ -67,33 +76,36 @@ const Index = () => {
       }
     };
     fetchPosts();
-  }, [isLoggedIn]);
-
-  const [posts, setPosts] = useState<Post[]>([]);
+  }, [isLoggedIn, toast]);
 
   const handleLogin = async (email: string, password: string) => {
     const e = email.trim();
     const p = password.trim();
-
     try {
-      const res = await fetch("https://blog-management-system-qk02.onrender.com/users");
-      if (!res.ok) throw new Error("Failed to fetch users");
-      const users = await res.json();
-      const match = Array.isArray(users)
-        ? users.find((u: any) => String(u.email).toLowerCase() === e.toLowerCase() && String(u.password) === p)
-        : null;
-
-      const isValid = !!match || (e === DEMO_EMAIL && p === DEMO_PASSWORD);
-
-      if (!isValid) {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: e, password: p }),
+      });
+      if (!res.ok) {
         toast({ title: "Invalid credentials", description: "Email or password is incorrect.", variant: "destructive" });
         return;
       }
+      const data = await res.json();
+      if (data?.token) {
+        localStorage.setItem("auth:token", String(data.token));
+        localStorage.setItem("auth:isLoggedIn", "true");
+        localStorage.setItem("auth:sessionEmail", String(data.email || e));
+        setIsLoggedIn(true);
+        toast({ title: "Welcome back!", description: "You have successfully signed in to your blog." });
+        return;
+      }
 
-      setIsLoggedIn(true);
+      // fallback to demo/local behavior
       localStorage.setItem("auth:isLoggedIn", "true");
       localStorage.setItem("auth:sessionEmail", e);
-      toast({ title: "Welcome back!", description: "You have successfully signed in to your blog." });
+      setIsLoggedIn(true);
+      toast({ title: "Welcome back!", description: "Signed in (fallback)." });
     } catch (err) {
       toast({ title: "Login failed", description: "Could not contact the server.", variant: "destructive" });
     }
@@ -106,12 +118,13 @@ const Index = () => {
     }
 
     try {
-      const res = await fetch("https://blog-management-system-qk02.onrender.com/users", {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       });
 
+      // backend currently returns 400 for existing email, not 409
       if (res.status === 409) {
         toast({ title: "Email already registered", description: "Please sign in with this email.", variant: "destructive" });
         return;
@@ -127,15 +140,23 @@ const Index = () => {
         return;
       }
 
-      const savedUser = await res.json();
+      const data = await res.json();
+      if (data?.token) {
+        localStorage.setItem("auth:token", String(data.token));
+        localStorage.setItem("auth:isLoggedIn", "true");
+        localStorage.setItem("auth:sessionEmail", String(data.email || email.trim()));
+        setIsLoggedIn(true);
+        toast({ title: "Account created", description: "You are now signed in." });
+        return;
+      }
 
-      // Persist session and switch UI without re-calling login
-      const sessionEmail = (savedUser && savedUser.email) ? String(savedUser.email) : email.trim();
+      // fallback to previous flow
+      const sessionEmail = email.trim();
       localStorage.setItem("auth:user", JSON.stringify({ email: sessionEmail }));
       localStorage.setItem("auth:isLoggedIn", "true");
       localStorage.setItem("auth:sessionEmail", sessionEmail);
       setIsLoggedIn(true);
-      toast({ title: "Account created", description: "You are now signed in." });
+      toast({ title: "Account created", description: "Signed in (fallback)." });
     } catch (e) {
       toast({ title: "Network error", description: "Could not reach the server.", variant: "destructive" });
     }
@@ -146,6 +167,7 @@ const Index = () => {
     setSearchQuery("");
     localStorage.removeItem("auth:isLoggedIn");
     localStorage.removeItem("auth:sessionEmail");
+    localStorage.removeItem("auth:token");
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
@@ -154,12 +176,15 @@ const Index = () => {
 
   const handleAddPost = async (newPost: { title: string; content: string; tags: string[] }) => {
     try {
-      const res = await fetch("https://blog-management-system-qk02.onrender.com/posts", {
+      const res = await fetch(`${API_BASE}/posts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(),
+        },
         body: JSON.stringify({
           ...newPost,
-          user: { id: 1 }, // ✅ attach existing user
+          // You can later attach the real user id if you expose it in the auth response
         }),
       });
 
@@ -167,13 +192,12 @@ const Index = () => {
 
       const savedPost = await res.json();
 
-      // ✅ Map backend post into frontend format
       const formattedPost: Post = {
-        id: savedPost.id.toString(),
+        id: String(savedPost.id ?? savedPost._id ?? Math.random().toString(36).slice(2)),
         title: savedPost.title,
         content: savedPost.content,
         tags: newPost.tags || [],
-        author: "Blog Author",
+        author: savedPost.user?.email || "Blog Author",
         date: savedPost.createdAt
           ? new Date(savedPost.createdAt).toLocaleDateString()
           : new Date().toLocaleDateString(),
@@ -197,7 +221,12 @@ const Index = () => {
 
   const handleCheckUsers = async () => {
     try {
-      const res = await fetch("https://blog-management-system-qk02.onrender.com/users");
+      const res = await fetch(`${API_BASE}/users`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader(),
+        },
+      });
       if (!res.ok) throw new Error("Failed to fetch users");
       const users = await res.json();
       const count = Array.isArray(users) ? users.length : 0;
@@ -243,20 +272,33 @@ const Index = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Enter first name" />
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Enter first name"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Enter last name" />
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Enter last name"
+                    />
                   </div>
                 </div>
                 <div className="flex items-center gap-3 mt-4">
                   <Button onClick={handleSaveProfile}>Save Profile</Button>
-                  <Button variant="secondary" onClick={handleCheckUsers}>Check Users</Button>
+                  <Button variant="secondary" onClick={handleCheckUsers}>
+                    Check Users
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
+
           {/* Post Creation Form */}
           <div className="slide-up stagger-1">
             <PostForm onAddPost={handleAddPost} />
@@ -266,9 +308,7 @@ const Index = () => {
           <div className="slide-up stagger-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-3xl font-bold text-foreground">
-                {searchQuery
-                  ? `Search Results (${filteredPosts.length})`
-                  : "All Posts"}
+                {searchQuery ? `Search Results (${filteredPosts.length})` : "All Posts"}
               </h2>
             </div>
 
@@ -288,6 +328,7 @@ const Index = () => {
                     className={`slide-up stagger-${Math.min(index + 3, 6)}`}
                   >
                     <BlogPost
+                      id={post.id}
                       title={post.title}
                       content={post.content}
                       author={post.author}
